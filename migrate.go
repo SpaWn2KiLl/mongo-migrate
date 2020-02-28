@@ -191,7 +191,7 @@ func (m *Migrate) Up(n int) error {
 			continue
 		}
 		p++
-		if err := migration.Up(m.session, m.db); err != nil {
+		if err := migration.Up(m.client, m.db); err != nil {
 			return err
 		}
 		if err := m.SetVersion(migration.Version, migration.Description); err != nil {
