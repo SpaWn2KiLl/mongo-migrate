@@ -7,9 +7,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var globalMigrate = NewMigrate(nil)
+var globalMigrate = NewMigrate(nil, nil)
 
-func internalRegister(up, down MigrationFunc, skip int) error {
+func internalRegister(implementation IMigration, skip int) error {
 	_, file, _, _ := runtime.Caller(skip)
 	version, description, err := extractVersionDescription(file)
 	if err != nil {
@@ -19,10 +19,9 @@ func internalRegister(up, down MigrationFunc, skip int) error {
 		return fmt.Errorf("migration with version %v already registered", version)
 	}
 	globalMigrate.migrations = append(globalMigrate.migrations, Migration{
-		Version:     version,
-		Description: description,
-		Up:          up,
-		Down:        down,
+		Version:        version,
+		Description:    description,
+		Implementation: implementation,
 	})
 	return nil
 }
@@ -61,13 +60,13 @@ func internalRegister(up, down MigrationFunc, skip int) error {
 // 	 	 return nil
 // 	 })
 //  }
-func Register(up, down MigrationFunc) error {
-	return internalRegister(up, down, 2)
+func Register(implementation IMigration) error {
+	return internalRegister(implementation, 2)
 }
 
 // MustRegister acts like Register but panics on errors.
-func MustRegister(up, down MigrationFunc) {
-	if err := internalRegister(up, down, 2); err != nil {
+func MustRegister(implementation IMigration) {
+	if err := internalRegister(implementation, 2); err != nil {
 		panic(err)
 	}
 }
@@ -77,6 +76,11 @@ func RegisteredMigrations() []Migration {
 	ret := make([]Migration, len(globalMigrate.migrations))
 	copy(ret, globalMigrate.migrations)
 	return ret
+}
+
+// SetClient sets connection client.
+func SetClient(client *mongo.Client) {
+	globalMigrate.client = client
 }
 
 // SetDatabase sets database for global migrate.

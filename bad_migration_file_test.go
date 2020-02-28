@@ -2,8 +2,6 @@ package migrate
 
 import (
 	"testing"
-
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func TestBadMigrationFile(t *testing.T) {
@@ -11,13 +9,9 @@ func TestBadMigrationFile(t *testing.T) {
 	defer func() {
 		globalMigrate = oldMigrate
 	}()
-	globalMigrate = NewMigrate(nil)
+	globalMigrate = NewMigrate(nil, nil)
 
-	err := Register(func(db *mongo.Database) error {
-		return nil
-	}, func(db *mongo.Database) error {
-		return nil
-	})
+	err := Register(migration{})
 	if err == nil {
 		t.Errorf("Unexpected nil error")
 	}
@@ -31,10 +25,6 @@ func TestBadMigrationFilePanic(t *testing.T) {
 			t.Errorf("Unexpectedly no panic recovered")
 		}
 	}()
-	globalMigrate = NewMigrate(nil)
-	MustRegister(func(db *mongo.Database) error {
-		return nil
-	}, func(db *mongo.Database) error {
-		return nil
-	})
+	globalMigrate = NewMigrate(nil, nil)
+	MustRegister(migration{})
 }

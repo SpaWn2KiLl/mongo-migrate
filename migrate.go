@@ -33,15 +33,18 @@ const AllAvailable = -1
 // This document consists migration version, migration description and timestamp.
 // Current database version determined as version in latest added document (biggest "_id") from collection mentioned above.
 type Migrate struct {
+	client               *mongo.Client
 	db                   *mongo.Database
 	migrations           []Migration
 	migrationsCollection string
 }
 
-func NewMigrate(db *mongo.Database, migrations ...Migration) *Migrate {
+// NewMigrate creates a migration
+func NewMigrate(client *mongo.Client, db *mongo.Database, migrations ...Migration) *Migrate {
 	internalMigrations := make([]Migration, len(migrations))
 	copy(internalMigrations, migrations)
 	return &Migrate{
+		client:               client,
 		db:                   db,
 		migrations:           internalMigrations,
 		migrationsCollection: defaultMigrationsCollection,
@@ -185,11 +188,11 @@ func (m *Migrate) Up(n int) error {
 
 	for i, p := 0, 0; i < len(m.migrations) && p < n; i++ {
 		migration := m.migrations[i]
-		if migration.Version <= currentVersion || migration.Up == nil {
+		if migration.Version <= currentVersion || migration.Implementation == nil {
 			continue
 		}
 		p++
-		if err := migration.Up(m.db); err != nil {
+		if err := migration.Implementation.Up(m.client, m.db); err != nil {
 			return err
 		}
 		if err := m.SetVersion(migration.Version, migration.Description); err != nil {
@@ -214,11 +217,11 @@ func (m *Migrate) Down(n int) error {
 
 	for i, p := len(m.migrations)-1, 0; i >= 0 && p < n; i-- {
 		migration := m.migrations[i]
-		if migration.Version > currentVersion || migration.Down == nil {
+		if migration.Version > currentVersion || migration.Implementation == nil {
 			continue
 		}
 		p++
-		if err := migration.Down(m.db); err != nil {
+		if err := migration.Implementation.Down(m.client, m.db); err != nil {
 			return err
 		}
 
