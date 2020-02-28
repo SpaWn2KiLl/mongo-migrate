@@ -33,15 +33,17 @@ const AllAvailable = -1
 // This document consists migration version, migration description and timestamp.
 // Current database version determined as version in latest added document (biggest "_id") from collection mentioned above.
 type Migrate struct {
+	client               *mongo.Client
 	db                   *mongo.Database
 	migrations           []Migration
 	migrationsCollection string
 }
 
-func NewMigrate(db *mongo.Database, migrations ...Migration) *Migrate {
+func NewMigrate(client *mongo.Client, db *mongo.Database, migrations ...Migration) *Migrate {
 	internalMigrations := make([]Migration, len(migrations))
 	copy(internalMigrations, migrations)
 	return &Migrate{
+		client:               client,
 		db:                   db,
 		migrations:           internalMigrations,
 		migrationsCollection: defaultMigrationsCollection,
@@ -189,7 +191,7 @@ func (m *Migrate) Up(n int) error {
 			continue
 		}
 		p++
-		if err := migration.Up(m.db); err != nil {
+		if err := migration.Up(m.session, m.db); err != nil {
 			return err
 		}
 		if err := m.SetVersion(migration.Version, migration.Description); err != nil {
@@ -218,7 +220,7 @@ func (m *Migrate) Down(n int) error {
 			continue
 		}
 		p++
-		if err := migration.Down(m.db); err != nil {
+		if err := migration.Down(m.client, m.db); err != nil {
 			return err
 		}
 

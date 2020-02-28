@@ -12,13 +12,13 @@ import (
 const globalTestCollection = "test-global"
 
 func init() {
-	Register(func(db *mongo.Database) error {
+	Register(func(client *mongo.Client, db *mongo.Database) error {
 		_, err := db.Collection(globalTestCollection).InsertOne(context.TODO(), bson.D{{"a", "b"}})
 		if err != nil {
 			return err
 		}
 		return nil
-	}, func(db *mongo.Database) error {
+	}, func(client *mongo.Client, db *mongo.Database) error {
 		_, err := db.Collection(globalTestCollection).DeleteOne(context.TODO(), bson.D{{"a", "b"}})
 		if err != nil {
 			return err

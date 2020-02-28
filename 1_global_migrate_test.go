@@ -12,7 +12,7 @@ func TestGlobalMigrateSetGet(t *testing.T) {
 		globalMigrate = oldMigrate
 	}()
 	db := &mongo.Database{}
-	globalMigrate = NewMigrate(db)
+	globalMigrate = NewMigrate(nil, db)
 
 	if globalMigrate.db != db {
 		t.Errorf("Unexpected non-equal dbs")
@@ -33,11 +33,11 @@ func TestMigrationsRegistration(t *testing.T) {
 	defer func() {
 		globalMigrate = oldMigrate
 	}()
-	globalMigrate = NewMigrate(nil)
+	globalMigrate = NewMigrate(nil, nil)
 
-	err := Register(func(db *mongo.Database) error {
+	err := Register(func(session *mongo.Session, db *mongo.Database) error {
 		return nil
-	}, func(db *mongo.Database) error {
+	}, func(session *mongo.Session, db *mongo.Database) error {
 		return nil
 	})
 	if err != nil {
@@ -53,9 +53,9 @@ func TestMigrationsRegistration(t *testing.T) {
 		t.Errorf("Unexpected version/description: %d %s", registered[0].Version, registered[0].Description)
 	}
 
-	err = Register(func(db *mongo.Database) error {
+	err = Register(func(session *mongo.Session, db *mongo.Database) error {
 		return nil
-	}, func(db *mongo.Database) error {
+	}, func(session *mongo.Session, db *mongo.Database) error {
 		return nil
 	})
 	if err == nil {
@@ -71,10 +71,10 @@ func TestMigrationMustRegistration(t *testing.T) {
 			t.Errorf("Unexpected panic: %v", r)
 		}
 	}()
-	globalMigrate = NewMigrate(nil)
-	MustRegister(func(db *mongo.Database) error {
+	globalMigrate = NewMigrate(nil, nil)
+	MustRegister(func(session *mongo.Session, db *mongo.Database) error {
 		return nil
-	}, func(db *mongo.Database) error {
+	}, func(session *mongo.Session, db *mongo.Database) error {
 		return nil
 	})
 	registered := RegisteredMigrations()

@@ -86,7 +86,7 @@ func TestMain(m *testing.M) {
 
 func TestSetGetVersion(t *testing.T) {
 	defer cleanup(db)
-	migrate := NewMigrate(db)
+	migrate := NewMigrate(nil, db)
 	if err := migrate.SetVersion(1, "hello"); err != nil {
 		t.Errorf("Unexpected error: %v", err)
 		return
@@ -132,7 +132,7 @@ func TestSetGetVersion(t *testing.T) {
 
 func TestVersionBeforeSet(t *testing.T) {
 	defer cleanup(db)
-	migrate := NewMigrate(db)
+	migrate := NewMigrate(nil, db)
 	version, _, err := migrate.Version()
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
@@ -146,8 +146,8 @@ func TestVersionBeforeSet(t *testing.T) {
 
 func TestUpMigrations(t *testing.T) {
 	defer cleanup(db)
-	migrate := NewMigrate(db,
-		Migration{Version: 1, Description: "hello", Up: func(db *mongo.Database) error {
+	migrate := NewMigrate(nil, db,
+		Migration{Version: 1, Description: "hello", Up: func(client *mongo.Client, db *mongo.Database) error {
 			_, err := db.Collection(testCollection).InsertOne(context.TODO(), bson.D{{"hello", "world"}})
 			if err != nil {
 				return err
@@ -155,7 +155,7 @@ func TestUpMigrations(t *testing.T) {
 
 			return nil
 		}},
-		Migration{Version: 2, Description: "world", Up: func(db *mongo.Database) error {
+		Migration{Version: 2, Description: "world", Up: func(client *mongo.Client, db *mongo.Database) error {
 			opt := options.Index().SetName("test_idx")
 			keys := bson.D{{"hello", 1}}
 			model := mongo.IndexModel{Keys: keys, Options: opt}
@@ -230,14 +230,14 @@ func TestUpMigrations(t *testing.T) {
 
 func TestDownMigrations(t *testing.T) {
 	defer cleanup(db)
-	migrate := NewMigrate(db,
-		Migration{Version: 1, Description: "hello", Up: func(db *mongo.Database) error {
+	migrate := NewMigrate(nil, db,
+		Migration{Version: 1, Description: "hello", Up: func(client *mongo.Client, db *mongo.Database) error {
 			_, err := db.Collection(testCollection).InsertOne(context.TODO(), bson.D{{"hello", "world"}})
 			if err != nil {
 				return err
 			}
 			return nil
-		}, Down: func(db *mongo.Database) error {
+		}, Down: func(client *mongo.Client, db *mongo.Database) error {
 			_, err := db.Collection(testCollection).DeleteOne(context.TODO(), bson.D{{"hello", "world"}})
 			if err != nil {
 				return err

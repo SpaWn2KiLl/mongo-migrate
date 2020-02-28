@@ -13,7 +13,7 @@ import (
 const globalTestIndexName = "test_idx_2"
 
 func init() {
-	Register(func(db *mongo.Database) error {
+	Register(func(client *mongo.Client, db *mongo.Database) error {
 		keys := bson.D{{"a", 1}}
 		opt := options.Index().SetName(globalTestIndexName)
 		model := mongo.IndexModel{Keys: keys, Options: opt}
@@ -22,7 +22,7 @@ func init() {
 			return err
 		}
 		return nil
-	}, func(db *mongo.Database) error {
+	}, func(client *mongo.Client, db *mongo.Database) error {
 		_, err := db.Collection(globalTestCollection).Indexes().DropOne(context.TODO(), globalTestIndexName)
 		if err != nil {
 			return err

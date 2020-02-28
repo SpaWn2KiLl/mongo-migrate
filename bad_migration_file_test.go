@@ -11,11 +11,11 @@ func TestBadMigrationFile(t *testing.T) {
 	defer func() {
 		globalMigrate = oldMigrate
 	}()
-	globalMigrate = NewMigrate(nil)
+	globalMigrate = NewMigrate(nil, nil)
 
-	err := Register(func(db *mongo.Database) error {
+	err := Register(func(client *mongo.Client, db *mongo.Database) error {
 		return nil
-	}, func(db *mongo.Database) error {
+	}, func(client *mongo.Client, db *mongo.Database) error {
 		return nil
 	})
 	if err == nil {
@@ -31,10 +31,10 @@ func TestBadMigrationFilePanic(t *testing.T) {
 			t.Errorf("Unexpectedly no panic recovered")
 		}
 	}()
-	globalMigrate = NewMigrate(nil)
-	MustRegister(func(db *mongo.Database) error {
+	globalMigrate = NewMigrate(nil, nil)
+	MustRegister(func(client *mongo.Client, db *mongo.Database) error {
 		return nil
-	}, func(db *mongo.Database) error {
+	}, func(client *mongo.Client, db *mongo.Database) error {
 		return nil
 	})
 }

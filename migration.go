@@ -7,7 +7,7 @@ import (
 )
 
 // MigrationFunc used to define actions to be performed for a migration.
-type MigrationFunc func(db *mongo.Database) error
+type MigrationFunc func(client *mongo.Client, db *mongo.Database) error
 
 // Migration represents single database migration.
 // Migration contains:

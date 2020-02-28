@@ -7,7 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var globalMigrate = NewMigrate(nil)
+var globalMigrate = NewMigrate(nil, nil)
 
 func internalRegister(up, down MigrationFunc, skip int) error {
 	_, file, _, _ := runtime.Caller(skip)
@@ -77,6 +77,11 @@ func RegisteredMigrations() []Migration {
 	ret := make([]Migration, len(globalMigrate.migrations))
 	copy(ret, globalMigrate.migrations)
 	return ret
+}
+
+// SetClient sets connection client.
+func SetClient(client *mongo.Client) {
+	globalMigrate.client = client
 }
 
 // SetDatabase sets database for global migrate.
