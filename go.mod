@@ -1,4 +1,4 @@
-module github.com/xakep666/mongo-migrate
+module github.com/spawn2kill/mongo-migrate
 
 require (
 	github.com/google/go-cmp v0.3.0 // indirect
