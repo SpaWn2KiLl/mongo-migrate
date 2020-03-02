@@ -6,8 +6,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// MigrationFunc used to define actions to be performed for a migration.
-type MigrationFunc func(client *mongo.Client, db *mongo.Database) error
+// IMigration represents the interface that each migration needs to implement
+type IMigration interface {
+	Up(client *mongo.Client, db *mongo.Database) error
+	Down(client *mongo.Client, db *mongo.Database) error
+}
 
 // Migration represents single database migration.
 // Migration contains:
@@ -20,10 +23,9 @@ type MigrationFunc func(client *mongo.Client, db *mongo.Database) error
 //
 // - down: callback which will be called in "down" migration process for reverting changes
 type Migration struct {
-	Version     uint64
-	Description string
-	Up          MigrationFunc
-	Down        MigrationFunc
+	Version        uint64
+	Description    string
+	Implementation IMigration
 }
 
 func migrationSort(migrations []Migration) {

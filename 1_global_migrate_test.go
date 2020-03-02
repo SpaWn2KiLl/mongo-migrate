@@ -35,11 +35,7 @@ func TestMigrationsRegistration(t *testing.T) {
 	}()
 	globalMigrate = NewMigrate(nil, nil)
 
-	err := Register(func(session *mongo.Session, db *mongo.Database) error {
-		return nil
-	}, func(session *mongo.Session, db *mongo.Database) error {
-		return nil
-	})
+	err := Register(migration{})
 	if err != nil {
 		t.Errorf("Unexpected register error: %v", err)
 		return
@@ -53,11 +49,7 @@ func TestMigrationsRegistration(t *testing.T) {
 		t.Errorf("Unexpected version/description: %d %s", registered[0].Version, registered[0].Description)
 	}
 
-	err = Register(func(session *mongo.Session, db *mongo.Database) error {
-		return nil
-	}, func(session *mongo.Session, db *mongo.Database) error {
-		return nil
-	})
+	err = Register(migration{})
 	if err == nil {
 		t.Errorf("Unexpected nil error")
 	}
@@ -72,11 +64,7 @@ func TestMigrationMustRegistration(t *testing.T) {
 		}
 	}()
 	globalMigrate = NewMigrate(nil, nil)
-	MustRegister(func(session *mongo.Session, db *mongo.Database) error {
-		return nil
-	}, func(session *mongo.Session, db *mongo.Database) error {
-		return nil
-	})
+	MustRegister(migration{})
 	registered := RegisteredMigrations()
 	if len(registered) <= 0 || len(registered) > 1 {
 		t.Errorf("Unexpected length of registered migrations")
@@ -85,4 +73,15 @@ func TestMigrationMustRegistration(t *testing.T) {
 	if registered[0].Version != 1 || registered[0].Description != "global_migrate_test" {
 		t.Errorf("Unexpected version/description: %d %s", registered[0].Version, registered[0].Description)
 	}
+}
+
+type migration struct {
+}
+
+func (migration) Up(client *mongo.Client, db *mongo.Database) error {
+	return nil
+}
+
+func (migration) Down(client *mongo.Client, db *mongo.Database) error {
+	return nil
 }
